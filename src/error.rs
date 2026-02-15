@@ -7,4 +7,10 @@ pub enum ChatError {
 
     #[error("parse error: {0}")]
     Parse(String),
+
+    #[error("unknown room: {0}")]
+    UnknownRoom(String),
+
+    #[error("unknown user: {0}")]
+    UnknownUser(String),
 }

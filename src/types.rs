@@ -8,10 +8,13 @@ use std::fmt;
 pub struct UserId(u64);
 
 impl UserId {
-    pub fn next(counter: &mut u64) -> Self {
-        let id = *counter;
-        *counter += 1;
+    pub fn new(id: u64) -> Self {
         Self(id)
+    }
+
+    /// Return the raw index for Vec-based lookup.
+    pub fn index(self) -> usize {
+        self.0 as usize
     }
 }
 
@@ -21,10 +24,20 @@ impl fmt::Display for UserId {
     }
 }
 
-/// A unique identifier for a chat room (used from Stage 2 onward).
-#[allow(dead_code)]
+/// A unique identifier for a chat room.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RoomId(u64);
+
+impl RoomId {
+    pub fn new(id: u64) -> Self {
+        Self(id)
+    }
+
+    /// Return the raw index for Vec-based lookup.
+    pub fn index(self) -> usize {
+        self.0 as usize
+    }
+}
 
 impl fmt::Display for RoomId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
