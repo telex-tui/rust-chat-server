@@ -1,10 +1,10 @@
 # Building a Chat Server in Rust
 
-Companion repository for the "Building a Chat Server in Rust" blog series — a peer series to "Rust Patterns That Matter."
+Companion repository for the "Building a Chat Server in Rust" blog series - a peer series to "Rust Patterns That Matter."
 
 ## Series Posts & Branches
 
-Each blog post corresponds to a branch. Branches form a chain — each builds on the previous one. Check out any branch to see the code at that stage, or diff between branches to see what each post adds.
+Each blog post corresponds to a branch. Branches form a chain - each builds on the previous one. Check out any branch to see the code at that stage, or diff between branches to see what each post adds.
 
 | Branch | Blog Post | Description |
 |--------|-----------|-------------|
@@ -20,20 +20,30 @@ Each blog post corresponds to a branch. Branches form a chain — each builds on
 ## Quick Start
 
 ```bash
-# See the code at any stage
-git checkout 01-hello-tcp
-
-# See what a post adds
-git diff 01-hello-tcp..02-rooms-users
-
-# Run the server (at any branch)
+git clone https://github.com/telex-tui/rust-chat-server
+cd rust-chat-server
+git checkout 04-commands
 cargo run
 ```
+
+Then in another terminal:
+
+```bash
+nc 127.0.0.1 8080
+alice
+hello everyone                 # plain text chat
+/join general                  # -> * You joined #general
+/nick alicia                   # -> * You are now alicia (was alice)
+/help                          # -> Commands: /join, /nick, /kick, /list, /quit
+/quit                          # -> * Goodbye!
+```
+
+To see what this stage adds: `git diff 03-parsing..04-commands`
 
 ## Companion Series
 
 This code accompanies two peer blog series:
-- **"Building a Chat Server in Rust"** (6 posts) — project-focused, builds this server
-- **"Rust Patterns That Matter"** (22 posts) — pattern-focused, each post isolates one concept
+- **"Building a Chat Server in Rust"** (6 posts) - project-focused, builds this server
+- **"Rust Patterns That Matter"** (22 posts) - pattern-focused, each post isolates one concept
 
 A reader can enter from either series and cross over at any time.
