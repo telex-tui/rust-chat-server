@@ -2,12 +2,12 @@
 
 Companion repository for the "Building a Chat Server in Rust" blog series — a peer series to "Rust Patterns That Matter."
 
-## Series Posts & Git Tags
+## Series Posts & Branches
 
-Each blog post corresponds to a tagged commit. Check out any tag to see the code at that stage, or diff between tags to see what each post adds.
+Each blog post corresponds to a branch. Branches form a chain — each builds on the previous one. Check out any branch to see the code at that stage, or diff between branches to see what each post adds.
 
-| Tag | Blog Post | Description |
-|-----|-----------|-------------|
+| Branch | Blog Post | Description |
+|--------|-----------|-------------|
 | `01-hello-tcp` | #1: Hello, TCP | Echo server, newtypes, error handling |
 | `02-rooms-users` | #2: Rooms and Users | Room/user state, broadcasting |
 | `03-parsing` | #3: Parsing and Performance | Wire protocol, zero-copy parsing |
@@ -26,7 +26,7 @@ git checkout 01-hello-tcp
 # See what a post adds
 git diff 01-hello-tcp..02-rooms-users
 
-# Run the server (at any tag)
+# Run the server (at any branch)
 cargo run
 ```
 
@@ -34,6 +34,6 @@ cargo run
 
 This code accompanies two peer blog series:
 - **"Building a Chat Server in Rust"** (6 posts) — project-focused, builds this server
-- **"Rust Patterns That Matter"** (20 posts) — pattern-focused, each post isolates one concept
+- **"Rust Patterns That Matter"** (22 posts) — pattern-focused, each post isolates one concept
 
 A reader can enter from either series and cross over at any time.
