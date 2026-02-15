@@ -1,24 +1,54 @@
+mod error;
+mod message;
+mod types;
+
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+use error::ChatError;
+use message::Message;
+use types::UserId;
+
+fn main() -> Result<(), ChatError> {
     let listener = TcpListener::bind("127.0.0.1:8080")?;
     println!("Chat server listening on 127.0.0.1:8080");
+
+    let mut next_user_id = 0u64;
 
     for stream in listener.incoming() {
         let mut stream = stream?;
         let peer = stream.peer_addr()?;
-        println!("New connection from {peer}");
+        let user_id = UserId::next(&mut next_user_id);
+        println!("[{user_id}] connected from {peer}");
 
-        // For now: single-threaded echo server
-        // Post 1 will evolve this with newtypes, From/Into, and proper error handling
-        let reader = BufReader::new(stream.try_clone()?);
-        for line in reader.lines() {
-            let line = line?;
-            writeln!(stream, "echo: {line}")?;
+        if let Err(e) = handle_client(&mut stream, user_id) {
+            println!("[{user_id}] error: {e}");
         }
 
-        println!("{peer} disconnected");
+        println!("[{user_id}] disconnected");
+    }
+
+    Ok(())
+}
+
+fn handle_client(
+    stream: &mut std::net::TcpStream,
+    user_id: UserId,
+) -> Result<(), ChatError> {
+    writeln!(stream, "Welcome, {user_id}! Format: username:message")?;
+
+    let reader = BufReader::new(stream.try_clone()?);
+    for line in reader.lines() {
+        let line = line?;
+        match line.parse::<Message>() {
+            Ok(msg) => {
+                println!("[{user_id}] {msg}");
+                writeln!(stream, "{msg}")?;
+            }
+            Err(e) => {
+                writeln!(stream, "ERROR: {e}")?;
+            }
+        }
     }
 
     Ok(())
