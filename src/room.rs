@@ -1,17 +1,18 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 use crate::types::{RoomId, UserId};
 
-/// A chat room. Members are stored as a shared, mutable list of user IDs.
+/// A chat room. Members stored behind Arc<Mutex> for thread-safe access.
 ///
-/// Rc<RefCell<Vec<UserId>>> lets multiple parts of the code hold a handle
-/// to the membership list. Rc provides shared ownership; RefCell moves
-/// borrow checking to runtime so we can mutate through a shared reference.
+/// Stage 2 used Rc<RefCell> — single-threaded shared mutable state.
+/// Now that we have threads, Rc isn't Send (can't cross thread boundaries)
+/// and RefCell isn't Sync (can't be shared between threads). Arc<Mutex>
+/// is the thread-safe equivalent: Arc for shared ownership across threads,
+/// Mutex for exclusive access.
 pub struct Room {
     pub id: RoomId,
     pub name: String,
-    pub members: Rc<RefCell<Vec<UserId>>>,
+    pub members: Arc<Mutex<Vec<UserId>>>,
 }
 
 impl Room {
@@ -19,22 +20,22 @@ impl Room {
         Self {
             id,
             name,
-            members: Rc::new(RefCell::new(Vec::new())),
+            members: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
     pub fn add_member(&self, user_id: UserId) {
-        let mut members = self.members.borrow_mut();
+        let mut members = self.members.lock().unwrap();
         if !members.contains(&user_id) {
             members.push(user_id);
         }
     }
 
     pub fn remove_member(&self, user_id: UserId) {
-        self.members.borrow_mut().retain(|&id| id != user_id);
+        self.members.lock().unwrap().retain(|&id| id != user_id);
     }
 
     pub fn member_ids(&self) -> Vec<UserId> {
-        self.members.borrow().clone()
+        self.members.lock().unwrap().clone()
     }
 }

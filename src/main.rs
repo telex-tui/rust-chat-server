@@ -13,9 +13,11 @@ mod protocol;
 mod room;
 mod server;
 mod types;
+#[allow(dead_code)]
 mod user;
 
 use std::net::TcpListener;
+use std::sync::{Arc, Mutex};
 
 use config::ServerConfig;
 use error::ChatError;
@@ -23,7 +25,6 @@ use filter::FilterAction;
 use server::Server;
 
 fn main() -> Result<(), ChatError> {
-    // Builder pattern: configure the server with chained methods.
     let config = ServerConfig::builder()
         .addr("127.0.0.1")
         .port(8080)
@@ -33,8 +34,7 @@ fn main() -> Result<(), ChatError> {
 
     let mut server = Server::new(config);
 
-    // Register a message filter using a closure.
-    // FnMut: this closure captures `count` and mutates it on each call.
+    // Register a filter — the closure is Send because it only captures a u64.
     let mut count = 0u64;
     server.filters.add(move |_username: &str, _body: &str| {
         count += 1;
@@ -43,15 +43,23 @@ fn main() -> Result<(), ChatError> {
     });
 
     let addr = server.bind_addr();
+
+    // Wrap server in Arc<Mutex> for thread-safe shared access.
+    let server = Arc::new(Mutex::new(server));
+
     let listener = TcpListener::bind(&addr)?;
-    println!("Chat server listening on {addr}");
+    println!("Chat server listening on {addr} (multi-threaded)");
 
     for stream in listener.incoming() {
         let stream = stream?;
+        let server = Arc::clone(&server);
 
-        if let Err(e) = server.handle_client(stream) {
-            println!("Client error: {e}");
-        }
+        // Spawn a thread per client — each thread gets its own Arc handle.
+        std::thread::spawn(move || {
+            if let Err(e) = server::handle_client(server, stream) {
+                println!("Client error: {e}");
+            }
+        });
     }
 
     Ok(())

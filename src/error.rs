@@ -8,6 +8,7 @@ pub enum ChatError {
     #[error("parse error: {0}")]
     Parse(String),
 
+    #[allow(dead_code)]
     #[error("unknown room: {0}")]
     UnknownRoom(String),
 

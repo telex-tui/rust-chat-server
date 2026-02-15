@@ -9,7 +9,7 @@
 /// you can't name them. Boxing erases the type and lets us store
 /// different closures in a Vec.
 pub struct FilterRegistry {
-    filters: Vec<Box<dyn FnMut(&str, &str) -> FilterAction>>,
+    filters: Vec<Box<dyn FnMut(&str, &str) -> FilterAction + Send>>,
 }
 
 /// What a filter decides to do with a message.
@@ -33,7 +33,7 @@ impl FilterRegistry {
     /// The closure receives (username, body) and returns a FilterAction.
     pub fn add<F>(&mut self, filter: F)
     where
-        F: FnMut(&str, &str) -> FilterAction + 'static,
+        F: FnMut(&str, &str) -> FilterAction + Send + 'static,
     {
         self.filters.push(Box::new(filter));
     }
