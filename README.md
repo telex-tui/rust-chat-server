@@ -1,10 +1,10 @@
 # Building a Chat Server in Rust
 
-Companion repository for the "Building a Chat Server in Rust" blog series — a peer series to "Rust Patterns That Matter."
+Companion repository for the "Building a Chat Server in Rust" blog series - a peer series to "Rust Patterns That Matter."
 
 ## Series Posts & Branches
 
-Each blog post corresponds to a branch. Branches form a chain — each builds on the previous one. Check out any branch to see the code at that stage, or diff between branches to see what each post adds.
+Each blog post corresponds to a branch. Branches form a chain - each builds on the previous one. Check out any branch to see the code at that stage, or diff between branches to see what each post adds.
 
 | Branch | Blog Post | Description |
 |--------|-----------|-------------|
@@ -20,20 +20,25 @@ Each blog post corresponds to a branch. Branches form a chain — each builds on
 ## Quick Start
 
 ```bash
-# See the code at any stage
+git clone https://github.com/telex-tui/rust-chat-server
+cd rust-chat-server
 git checkout 01-hello-tcp
-
-# See what a post adds
-git diff 01-hello-tcp..02-rooms-users
-
-# Run the server (at any branch)
 cargo run
+```
+
+Then in another terminal:
+
+```bash
+nc 127.0.0.1 8080
+alice:hello world          # -> <alice> hello world
+bob:good morning           # -> <bob> good morning
+no delimiter here          # -> ERROR: parse error: missing ':' delimiter
 ```
 
 ## Companion Series
 
 This code accompanies two peer blog series:
-- **"Building a Chat Server in Rust"** (6 posts) — project-focused, builds this server
-- **"Rust Patterns That Matter"** (22 posts) — pattern-focused, each post isolates one concept
+- **"Building a Chat Server in Rust"** (6 posts) - project-focused, builds this server
+- **"Rust Patterns That Matter"** (22 posts) - pattern-focused, each post isolates one concept
 
 A reader can enter from either series and cross over at any time.
