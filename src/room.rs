@@ -9,7 +9,6 @@ use crate::types::{RoomId, UserId};
 /// to the membership list. Rc provides shared ownership; RefCell moves
 /// borrow checking to runtime so we can mutate through a shared reference.
 pub struct Room {
-    #[allow(dead_code)]
     pub id: RoomId,
     pub name: String,
     pub members: Rc<RefCell<Vec<UserId>>>,

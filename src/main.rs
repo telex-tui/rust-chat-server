@@ -1,5 +1,8 @@
 mod error;
+#[allow(dead_code)]
 mod message;
+#[allow(dead_code)]
+mod protocol;
 mod room;
 mod server;
 mod types;
@@ -19,8 +22,6 @@ fn main() -> Result<(), ChatError> {
     for stream in listener.incoming() {
         let stream = stream?;
 
-        // Still single-threaded: one client at a time.
-        // Multi-threading comes in Stage 5.
         if let Err(e) = server.handle_client(stream) {
             println!("Client error: {e}");
         }

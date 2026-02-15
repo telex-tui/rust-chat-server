@@ -1,22 +1,25 @@
+use std::borrow::Cow;
 use std::fmt;
-use std::str::FromStr;
 
 use crate::error::ChatError;
 
 /// A chat message with a username and body.
 ///
-/// Wire format: `username:message body here\n`
-/// Display format: `<username> message body here`
+/// Uses Cow<str> so it can borrow from an input buffer (zero-copy)
+/// or own its data when needed.
 #[derive(Debug, Clone)]
-pub struct Message {
-    pub username: String,
-    pub body: String,
+pub struct Message<'a> {
+    pub username: Cow<'a, str>,
+    pub body: Cow<'a, str>,
 }
 
-impl FromStr for Message {
-    type Err = ChatError;
+impl<'a> Message<'a> {
+    pub fn new(username: Cow<'a, str>, body: Cow<'a, str>) -> Self {
+        Self { username, body }
+    }
 
-    fn from_str(line: &str) -> Result<Self, Self::Err> {
+    /// Parse from the old "username:body" format (backwards compat).
+    pub fn parse(line: &'a str) -> Result<Self, ChatError> {
         let (username, body) = line
             .split_once(':')
             .ok_or_else(|| ChatError::Parse("missing ':' delimiter".into()))?;
@@ -27,22 +30,23 @@ impl FromStr for Message {
         }
 
         Ok(Message {
-            username: username.to_string(),
-            body: body.to_string(),
+            username: Cow::Borrowed(username),
+            body: Cow::Borrowed(body),
         })
     }
-}
 
-impl fmt::Display for Message {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<{}> {}", self.username, self.body)
+    /// Convert to an owned Message with 'static lifetime.
+    /// The 'static + Clone escape hatch for crossing scope boundaries.
+    pub fn into_owned(self) -> Message<'static> {
+        Message {
+            username: Cow::Owned(self.username.into_owned()),
+            body: Cow::Owned(self.body.into_owned()),
+        }
     }
 }
 
-/// Convert a Message into a String for sending over the wire.
-/// Uses the Display implementation — demonstrating From/Into.
-impl From<Message> for String {
-    fn from(msg: Message) -> Self {
-        msg.to_string()
+impl fmt::Display for Message<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<{}> {}", self.username, self.body)
     }
 }

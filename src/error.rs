@@ -11,6 +11,7 @@ pub enum ChatError {
     #[error("unknown room: {0}")]
     UnknownRoom(String),
 
+    #[allow(dead_code)]
     #[error("unknown user: {0}")]
     UnknownUser(String),
 }
