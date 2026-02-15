@@ -19,6 +19,7 @@ pub enum Command {
 pub enum CommandResult {
     JoinRoom { room: String },
     ChangeNick { new_name: String },
+    #[allow(dead_code)]
     KickUser { target: String, room_id: RoomId },
     Quit,
     Reply(String),

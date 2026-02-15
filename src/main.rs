@@ -16,15 +16,17 @@ mod types;
 #[allow(dead_code)]
 mod user;
 
-use std::net::TcpListener;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+
+use tokio::net::TcpListener;
+use tokio::sync::Mutex;
 
 use config::ServerConfig;
 use error::ChatError;
-use filter::FilterAction;
-use server::Server;
+use server::{CountingFilter, Server};
 
-fn main() -> Result<(), ChatError> {
+#[tokio::main]
+async fn main() -> Result<(), ChatError> {
     let config = ServerConfig::builder()
         .addr("127.0.0.1")
         .port(8080)
@@ -34,33 +36,26 @@ fn main() -> Result<(), ChatError> {
 
     let mut server = Server::new(config);
 
-    // Register a filter — the closure is Send because it only captures a u64.
-    let mut count = 0u64;
-    server.filters.add(move |_username: &str, _body: &str| {
-        count += 1;
-        println!("  [filter] message #{count} processed");
-        FilterAction::Allow
-    });
+    // Async filter — the trait returns Pin<Box<dyn Future + Send>>.
+    server.add_filter(Box::new(CountingFilter::new()));
 
     let addr = server.bind_addr();
-
-    // Wrap server in Arc<Mutex> for thread-safe shared access.
     let server = Arc::new(Mutex::new(server));
 
-    let listener = TcpListener::bind(&addr)?;
-    println!("Chat server listening on {addr} (multi-threaded)");
+    let listener = TcpListener::bind(&addr).await?;
+    println!("Chat server listening on {addr} (async)");
 
-    for stream in listener.incoming() {
-        let stream = stream?;
+    loop {
+        let (stream, _) = listener.accept().await?;
         let server = Arc::clone(&server);
 
-        // Spawn a thread per client — each thread gets its own Arc handle.
-        std::thread::spawn(move || {
-            if let Err(e) = server::handle_client(server, stream) {
+        // tokio::spawn requires the future to be Send.
+        // Our handle_client is Send because all data held across
+        // .await points is Send.
+        tokio::spawn(async move {
+            if let Err(e) = server::handle_client(server, stream).await {
                 println!("Client error: {e}");
             }
         });
     }
-
-    Ok(())
 }

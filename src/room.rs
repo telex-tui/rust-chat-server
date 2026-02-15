@@ -1,14 +1,9 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::types::{RoomId, UserId};
 
-/// A chat room. Members stored behind Arc<Mutex> for thread-safe access.
-///
-/// Stage 2 used Rc<RefCell> — single-threaded shared mutable state.
-/// Now that we have threads, Rc isn't Send (can't cross thread boundaries)
-/// and RefCell isn't Sync (can't be shared between threads). Arc<Mutex>
-/// is the thread-safe equivalent: Arc for shared ownership across threads,
-/// Mutex for exclusive access.
+/// Thread-safe room using tokio's async Mutex.
 pub struct Room {
     pub id: RoomId,
     pub name: String,
@@ -24,18 +19,18 @@ impl Room {
         }
     }
 
-    pub fn add_member(&self, user_id: UserId) {
-        let mut members = self.members.lock().unwrap();
+    pub async fn add_member(&self, user_id: UserId) {
+        let mut members = self.members.lock().await;
         if !members.contains(&user_id) {
             members.push(user_id);
         }
     }
 
-    pub fn remove_member(&self, user_id: UserId) {
-        self.members.lock().unwrap().retain(|&id| id != user_id);
+    pub async fn remove_member(&self, user_id: UserId) {
+        self.members.lock().await.retain(|&id| id != user_id);
     }
 
-    pub fn member_ids(&self) -> Vec<UserId> {
-        self.members.lock().unwrap().clone()
+    pub async fn member_ids(&self) -> Vec<UserId> {
+        self.members.lock().await.clone()
     }
 }
